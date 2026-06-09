@@ -2,11 +2,11 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://polyxos-api.onrender.com/api/$1"
+      "destination": "https://polyxos.onrender.com/api/$1"
     },
     {
       "source": "/brand/(.*)",
-      "destination": "https://polyxos-api.onrender.com/brand/$1"
+      "destination": "https://polyxos.onrender.com/brand/$1"
     },
     {
       "source": "/(.*)",
