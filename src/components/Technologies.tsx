@@ -33,9 +33,9 @@ function TechIcon({ name, color }: { name: string; color: string }) {
         <path d="M12 1.85c-.27 0-.55.07-.78.2L3.78 6.35C3.3 6.6 3 7.1 3 7.63v8.74c0 .54.3 1.03.78 1.28l7.44 4.3c.48.28 1.08.28 1.56 0l7.44-4.3c.48-.25.78-.74.78-1.28V7.63c0-.53-.3-1.03-.78-1.28L12.78 2.05C12.55 1.92 12.28 1.85 12 1.85z"/>
       </svg>
     ),
-    default: null,
+    default: <></>,
   };
-  return icons[name] || null;
+  return icons[name] || <></>;
 }
 
 export default function Technologies() {
