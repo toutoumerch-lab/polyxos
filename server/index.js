@@ -1,0 +1,65 @@
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import contactsRouter from './routes/contacts.js';
+import auditsRouter from './routes/audits.js';
+
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+// ─── Middleware ───────────────────────────────────────────────────────────────
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:5175',
+  ],
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true }));
+
+// Request logger (dev only)
+if (process.env.NODE_ENV !== 'production') {
+  app.use((req, _res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+    next();
+  });
+}
+
+// ─── Routes ───────────────────────────────────────────────────────────────────
+app.get('/api/health', (_req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    service: 'Polyxos API',
+    version: '1.0.0',
+  });
+});
+
+app.use('/api/contacts', contactsRouter);
+app.use('/api/audits',   auditsRouter);
+
+// 404 handler
+app.use((_req, res) => {
+  res.status(404).json({ success: false, error: 'Route not found.' });
+});
+
+// Global error handler
+app.use((err, _req, res, _next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ success: false, error: 'Internal server error.' });
+});
+
+// ─── Start ────────────────────────────────────────────────────────────────────
+app.listen(PORT, () => {
+  console.log('');
+  console.log('🚀 Polyxos API Server');
+  console.log(`   Local:   http://localhost:${PORT}`);
+  console.log(`   Health:  http://localhost:${PORT}/api/health`);
+  console.log('');
+});
