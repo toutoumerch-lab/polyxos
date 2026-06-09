@@ -5,8 +5,12 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      // All /api/* requests are forwarded to the Express server
       '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+      },
+      '/brand': {
         target: 'http://localhost:3001',
         changeOrigin: true,
         secure: false,

@@ -1,4 +1,5 @@
 import { Github, Twitter, Linkedin, Instagram } from 'lucide-react';
+import { useBrand } from '../context/BrandContext';
 
 const footerLinks = {
   Services: [
@@ -30,6 +31,8 @@ const socials = [
 ];
 
 export default function Footer() {
+  const { logoUrl } = useBrand();
+
   const scrollTo = (href: string) => {
     if (href === '#') return;
     const el = document.querySelector(href);
@@ -51,16 +54,22 @@ export default function Footer() {
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               className="flex items-center gap-3 mb-6 group"
             >
-              <div className="relative w-9 h-9">
-                <div className="absolute inset-0 rounded-lg gradient-bg opacity-80 group-hover:opacity-100 transition-opacity" />
-                <div className="absolute inset-0 flex items-center justify-center text-white font-bold text-lg font-display">
-                  P
-                </div>
-                <div className="absolute -inset-1 rounded-xl gradient-bg opacity-20 blur-md group-hover:opacity-40 transition-opacity" />
-              </div>
-              <span className="font-display text-xl font-bold text-white">
-                Poly<span className="gradient-text">xos</span>
-              </span>
+              {logoUrl ? (
+                <img src={logoUrl} alt="Logo" className="h-9 w-auto object-contain" />
+              ) : (
+                <>
+                  <div className="relative w-9 h-9">
+                    <div className="absolute inset-0 rounded-lg gradient-bg opacity-80 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute inset-0 flex items-center justify-center text-white font-bold text-lg font-display">
+                      P
+                    </div>
+                    <div className="absolute -inset-1 rounded-xl gradient-bg opacity-20 blur-md group-hover:opacity-40 transition-opacity" />
+                  </div>
+                  <span className="font-display text-xl font-bold text-white">
+                    Poly<span className="gradient-text">xos</span>
+                  </span>
+                </>
+              )}
             </button>
 
             <p className="text-gray-500 text-sm leading-relaxed max-w-xs mb-8">

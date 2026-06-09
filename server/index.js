@@ -1,11 +1,15 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import contactsRouter from './routes/contacts.js';
 import auditsRouter from './routes/audits.js';
+import brandRouter from './routes/brand.js';
 
 dotenv.config();
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -22,6 +26,9 @@ app.use(cors({
 
 app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Serve uploaded brand assets (public/brand/) as static files
+app.use('/brand', express.static(path.join(__dirname, '..', 'public', 'brand')));
 
 // Request logger (dev only)
 if (process.env.NODE_ENV !== 'production') {
@@ -43,6 +50,7 @@ app.get('/api/health', (_req, res) => {
 
 app.use('/api/contacts', contactsRouter);
 app.use('/api/audits',   auditsRouter);
+app.use('/api/brand',    brandRouter);
 
 // 404 handler
 app.use((_req, res) => {

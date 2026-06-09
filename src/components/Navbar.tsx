@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
+import { useBrand } from '../context/BrandContext';
 
 const navLinks = [
   { label: 'Services', href: '#services' },
@@ -13,6 +14,7 @@ const navLinks = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const { logoUrl } = useBrand();
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20);
@@ -40,16 +42,22 @@ export default function Navbar() {
             className="flex items-center gap-3 group"
             onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
           >
-            <div className="relative w-9 h-9">
-              <div className="absolute inset-0 rounded-lg gradient-bg opacity-80 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="absolute inset-0 flex items-center justify-center text-white font-bold text-lg font-display">
-                P
-              </div>
-              <div className="absolute -inset-1 rounded-xl gradient-bg opacity-20 blur-md group-hover:opacity-40 transition-opacity duration-300" />
-            </div>
-            <span className="font-display text-xl font-bold tracking-wide text-white">
-              Poly<span className="gradient-text">xos</span>
-            </span>
+            {logoUrl ? (
+              <img src={logoUrl} alt="Logo" className="h-9 w-auto object-contain" />
+            ) : (
+              <>
+                <div className="relative w-9 h-9">
+                  <div className="absolute inset-0 rounded-lg gradient-bg opacity-80 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="absolute inset-0 flex items-center justify-center text-white font-bold text-lg font-display">
+                    P
+                  </div>
+                  <div className="absolute -inset-1 rounded-xl gradient-bg opacity-20 blur-md group-hover:opacity-40 transition-opacity duration-300" />
+                </div>
+                <span className="font-display text-xl font-bold tracking-wide text-white">
+                  Poly<span className="gradient-text">xos</span>
+                </span>
+              </>
+            )}
           </a>
 
           {/* Desktop Nav */}

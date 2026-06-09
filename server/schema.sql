@@ -1,8 +1,3 @@
--- ============================================
--- Polyxos Database Schema
--- Run: node server/scripts/initDb.js
--- ============================================
-
 -- Contacts table (from the main contact form)
 CREATE TABLE IF NOT EXISTS contacts (
   id          SERIAL PRIMARY KEY,
@@ -29,14 +24,21 @@ CREATE TABLE IF NOT EXISTS audit_requests (
   updated_at  TIMESTAMPTZ   NOT NULL DEFAULT NOW()
 );
 
+-- Settings table for global app configuration (like Cloudinary brand URLs)
+CREATE TABLE IF NOT EXISTS settings (
+  key         VARCHAR(50) PRIMARY KEY,
+  value       TEXT,
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- Auto-update updated_at on row change
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
-  NEW.updated_at = NOW();
-  RETURN NEW;
+   NEW.updated_at = NOW();
+   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ language 'plpgsql';
 
 -- Attach trigger to contacts
 DROP TRIGGER IF EXISTS set_contacts_updated_at ON contacts;
@@ -45,16 +47,19 @@ CREATE TRIGGER set_contacts_updated_at
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Attach trigger to audit_requests
-DROP TRIGGER IF EXISTS set_audits_updated_at ON audit_requests;
-CREATE TRIGGER set_audits_updated_at
+DROP TRIGGER IF EXISTS set_audit_requests_updated_at ON audit_requests;
+CREATE TRIGGER set_audit_requests_updated_at
   BEFORE UPDATE ON audit_requests
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Attach trigger to settings
+DROP TRIGGER IF EXISTS set_settings_updated_at ON settings;
+CREATE TRIGGER set_settings_updated_at
+  BEFORE UPDATE ON settings
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Indexes for common queries
 CREATE INDEX IF NOT EXISTS idx_contacts_email      ON contacts(email);
 CREATE INDEX IF NOT EXISTS idx_contacts_status     ON contacts(status);
-CREATE INDEX IF NOT EXISTS idx_contacts_created_at ON contacts(created_at DESC);
-
-CREATE INDEX IF NOT EXISTS idx_audits_email      ON audit_requests(email);
-CREATE INDEX IF NOT EXISTS idx_audits_status     ON audit_requests(status);
-CREATE INDEX IF NOT EXISTS idx_audits_created_at ON audit_requests(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_requests_url  ON audit_requests(website_url);
+CREATE INDEX IF NOT EXISTS idx_audit_requests_status ON audit_requests(status);

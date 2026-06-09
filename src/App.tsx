@@ -11,6 +11,7 @@ import ContactCTABanner from './components/ContactCTABanner';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 import Admin from './pages/Admin';
+import { BrandProvider } from './context/BrandContext';
 
 function CursorGlow() {
   const cursorRef = useRef<HTMLDivElement>(null);
@@ -52,5 +53,9 @@ function MainSite() {
 
 export default function App() {
   const isAdmin = window.location.pathname === '/admin';
-  return isAdmin ? <Admin /> : <MainSite />;
+  return (
+    <BrandProvider>
+      {isAdmin ? <Admin /> : <MainSite />}
+    </BrandProvider>
+  );
 }
