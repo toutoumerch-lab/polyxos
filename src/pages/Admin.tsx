@@ -1949,8 +1949,18 @@ export default function Admin() {
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
               <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search..." id="admin-search"
-                className="pl-9 pr-4 py-2.5 text-sm text-white placeholder-gray-600 rounded-xl outline-none w-full xl:w-64 transition-all focus:ring-2 focus:ring-blue-500/30"
+                className="pl-9 pr-10 py-2.5 text-sm text-white placeholder-gray-600 rounded-xl outline-none w-full xl:w-64 transition-all focus:ring-2 focus:ring-blue-500/30"
                 style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }} />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                  title="Clear search"
+                >
+                  <X size={14} />
+                </button>
+              )}
             </div>
           )}
         </div>

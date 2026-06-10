@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
-import { ExternalLink, Search, Github } from 'lucide-react';
+import { ExternalLink, Search, Github, X, RefreshCw } from 'lucide-react';
 
 const STATIC_PROJECTS = [
   {
@@ -193,6 +193,18 @@ export default function Portfolio() {
   // Filters state
   const [category, setCategory] = useState('All');
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // Debounce search text
+  useEffect(() => {
+    setLoading(true);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setLoading(false);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   useEffect(() => {
     const obs = new IntersectionObserver(([e]) => {
@@ -204,28 +216,31 @@ export default function Portfolio() {
 
   useEffect(() => {
     const fetchProjects = async () => {
+      setLoading(true);
       try {
         const queryParams = new URLSearchParams();
         if (category !== 'All') queryParams.append('category', category);
-        if (search) queryParams.append('search', search);
+        if (debouncedSearch) queryParams.append('search', debouncedSearch);
 
         const res = await fetch(`/api/portfolio?${queryParams.toString()}`);
         const data = await res.json();
         // If data is empty and we had no filter/search, fallback to static defaults
-        if (data.success && data.data && (data.data.length > 0 || category !== 'All' || search)) {
+        if (data.success && data.data && (data.data.length > 0 || category !== 'All' || debouncedSearch)) {
           setProjects(data.data);
-        } else if (!search && category === 'All') {
+        } else if (!debouncedSearch && category === 'All') {
           setProjects(STATIC_PROJECTS);
         } else {
           setProjects([]);
         }
       } catch (err) {
         console.error('Failed to fetch projects:', err);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchProjects();
-  }, [category, search]);
+  }, [category, debouncedSearch]);
 
   const categories = ['All', 'Web Application', 'Mobile App', 'Custom Software', 'UI/UX Design'];
 
@@ -272,8 +287,20 @@ export default function Portfolio() {
               placeholder="Search projects..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white/3 hover:bg-white/5 focus:bg-white/5 border border-white/8 rounded-2xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-all"
+              className="w-full pl-10 pr-10 py-2.5 bg-white/3 hover:bg-white/5 focus:bg-white/5 border border-white/8 rounded-2xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-all"
             />
+            {loading ? (
+              <RefreshCw size={13} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-blue-400 animate-spin" />
+            ) : search ? (
+              <button
+                type="button"
+                onClick={() => setSearch('')}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                title="Clear search"
+              >
+                <X size={14} />
+              </button>
+            ) : null}
           </div>
         </div>
 
