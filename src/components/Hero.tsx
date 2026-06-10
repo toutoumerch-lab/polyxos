@@ -1,25 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowRight, Play } from 'lucide-react';
-
-// ── Types ──────────────────────────────────────────────────────────────────────
-interface Particle {
-  id: number; x: number; y: number;
-  size: number; speedX: number; speedY: number;
-  opacity: number; color: string;
-}
-
-// ── Particle system ────────────────────────────────────────────────────────────
-const PARTICLE_COLORS = ['rgba(59,130,246,', 'rgba(139,92,246,', 'rgba(6,182,212,'];
-function generateParticles(count: number): Particle[] {
-  return Array.from({ length: count }, (_, i) => ({
-    id: i, x: Math.random() * 100, y: Math.random() * 100,
-    size: Math.random() * 2.5 + 0.8,
-    speedX: (Math.random() - 0.5) * 0.016,
-    speedY: (Math.random() - 0.5) * 0.016,
-    opacity: Math.random() * 0.7 + 0.2,
-    color: PARTICLE_COLORS[Math.floor(Math.random() * PARTICLE_COLORS.length)],
-  }));
-}
+import HeroCubes3D from './HeroCubes3D';
 
 // ── 3D Logo constants ──────────────────────────────────────────────────────────
 // Each square: 52×52px face, 12px gap → 64px step
@@ -252,11 +233,8 @@ function PolyxosLogo3D() {
 
 // ── Hero section ───────────────────────────────────────────────────────────────
 export default function Hero() {
-  const [mousePos, setMousePos]   = useState({ x: 50, y: 50 });
-  const [particles, setParticles] = useState<Particle[]>(() => generateParticles(55));
-  const heroRef      = useRef<HTMLDivElement>(null);
-  const animFrameRef = useRef<number>(0);
-  const particlesRef = useRef<Particle[]>(particles);
+  const [mousePos, setMousePos] = useState({ x: 50, y: 50 });
+  const heroRef                 = useRef<HTMLDivElement>(null);
 
   // Mouse parallax
   useEffect(() => {
@@ -273,21 +251,7 @@ export default function Hero() {
     return () => window.removeEventListener('mousemove', handler);
   }, []);
 
-  // Particle animation loop
-  useEffect(() => {
-    const animate = () => {
-      particlesRef.current = particlesRef.current.map(p => {
-        let nx = p.x + p.speedX, ny = p.y + p.speedY;
-        if (nx < 0) nx = 100; if (nx > 100) nx = 0;
-        if (ny < 0) ny = 100; if (ny > 100) ny = 0;
-        return { ...p, x: nx, y: ny };
-      });
-      setParticles([...particlesRef.current]);
-      animFrameRef.current = requestAnimationFrame(animate);
-    };
-    animFrameRef.current = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animFrameRef.current);
-  }, []);
+
 
   const scrollToSection = (href: string) => {
     const el = document.querySelector(href);
@@ -312,29 +276,10 @@ export default function Hero() {
       <div className="orb orb-violet w-[500px] h-[500px] opacity-20 bottom-[10%] right-[5%]"/>
       <div className="orb orb-cyan   w-[320px] h-[320px] opacity-18 top-[20%]  right-[15%]"/>
 
-      {/* ── Particle field ── */}
-      <svg
-        className="absolute inset-0 w-full h-full pointer-events-none"
-        style={{ zIndex: 1 }}
-      >
-        {particles.map(p => (
-          <circle key={p.id}
-            cx={`${p.x}%`} cy={`${p.y}%`} r={p.size}
-            fill={`${p.color}${p.opacity.toFixed(2)})`}/>
-        ))}
-        {particles.slice(0, 22).map((p, i) =>
-          particles.slice(i + 1, 22).map(q => {
-            const dist = Math.sqrt((p.x - q.x) ** 2 + (p.y - q.y) ** 2);
-            return dist < 11
-              ? <line key={`${p.id}-${q.id}`}
-                  x1={`${p.x}%`} y1={`${p.y}%`}
-                  x2={`${q.x}%`} y2={`${q.y}%`}
-                  stroke={`rgba(59,130,246,${((11 - dist) / 11) * 0.14})`}
-                  strokeWidth="0.5"/>
-              : null;
-          })
-        )}
-      </svg>
+      {/* ── 3D Floating Logo Cubes ── */}
+      <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }}>
+        <HeroCubes3D />
+      </div>
 
       {/* ══════════════════════════════════════════════════════════════
           3D POLYXOS LOGO BACKGROUND
