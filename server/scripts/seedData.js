@@ -1,6 +1,22 @@
 import pool from '../db.js';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export async function seedDatabase() {
+  console.log('🌱 Ensuring database schema is applied...');
+
+  try {
+    const schemaPath = path.join(__dirname, '..', 'schema.sql');
+    const sql = fs.readFileSync(schemaPath, 'utf8');
+    await pool.query(sql);
+    console.log('   ✅ Schema check/creation complete.');
+  } catch (err) {
+    console.error('❌ Failed to apply database schema on startup:', err.message);
+  }
+
   console.log('🌱 Checking database for seeding...');
 
   try {
