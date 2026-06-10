@@ -11,6 +11,7 @@ import portfolioRouter from './routes/portfolio.js';
 import technologiesRouter from './routes/technologies.js';
 import settingsRouter from './routes/settings.js';
 import analyticsRouter from './routes/analytics.js';
+import { seedDatabase } from './scripts/seedData.js';
 
 dotenv.config();
 
@@ -82,4 +83,7 @@ app.listen(PORT, () => {
   console.log(`   Local:   http://localhost:${PORT}`);
   console.log(`   Health:  http://localhost:${PORT}/api/health`);
   console.log('');
+  
+  // Seed the database with default website values if empty
+  seedDatabase();
 });
