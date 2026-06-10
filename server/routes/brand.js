@@ -55,8 +55,19 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 });
 
+// ─── In-memory brand cache (avoids hitting FS/DB on every page load) ──────────
+let _brandCache = null;
+let _brandCacheTs = 0;
+const BRAND_CACHE_TTL = 60_000; // 60 seconds
+
 // ─── GET /api/brand ───────────────────────────────────────────────────────────
 router.get('/', async (req, res) => {
+  // Serve from memory cache if fresh
+  if (_brandCache && (Date.now() - _brandCacheTs) < BRAND_CACHE_TTL) {
+    res.set('Cache-Control', 'public, max-age=60');
+    return res.json(_brandCache);
+  }
+
   try {
     let logoExists = false;
     let faviconExists = false;
@@ -66,31 +77,32 @@ router.get('/', async (req, res) => {
     if (useCloudinary) {
       const result = await pool.query("SELECT key, value FROM settings WHERE key IN ('logo', 'favicon')");
       result.rows.forEach(row => {
-        if (row.key === 'logo') {
-          logoExists = !!row.value;
-          logoUrl = row.value; // Cloudinary auto-updates cache internally, but we can append timestamp
-        }
-        if (row.key === 'favicon') {
-          faviconExists = !!row.value;
-          faviconUrl = row.value;
-        }
+        if (row.key === 'logo')    { logoExists = !!row.value;    logoUrl    = row.value; }
+        if (row.key === 'favicon') { faviconExists = !!row.value; faviconUrl = row.value; }
       });
     } else {
-      const logoPath = path.join(localBrandDir, 'logo.png');
+      const logoPath    = path.join(localBrandDir, 'logo.png');
       const faviconPath = path.join(localBrandDir, 'favicon.png');
-      logoExists = fs.existsSync(logoPath);
+      logoExists    = fs.existsSync(logoPath);
       faviconExists = fs.existsSync(faviconPath);
-      if (logoExists) logoUrl = `/brand/logo.png?t=${Date.now()}`;
+      if (logoExists)    logoUrl    = `/brand/logo.png?t=${Date.now()}`;
       if (faviconExists) faviconUrl = `/brand/favicon.png?t=${Date.now()}`;
     }
 
-    res.json({
+    const payload = {
       success: true,
       data: {
-        logo: { exists: logoExists, url: logoUrl, size: null },
+        logo:    { exists: logoExists,    url: logoUrl,    size: null },
         favicon: { exists: faviconExists, url: faviconUrl, size: null },
       },
-    });
+    };
+
+    // Cache the result
+    _brandCache   = payload;
+    _brandCacheTs = Date.now();
+
+    res.set('Cache-Control', 'public, max-age=60');
+    res.json(payload);
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -104,6 +116,10 @@ router.post('/:type', (req, res) => {
   upload.single('image')(req, res, async (err) => {
     if (err) return res.status(400).json({ success: false, error: err.message });
     if (!req.file) return res.status(400).json({ success: false, error: 'No image file.' });
+
+    // Bust server-side cache so next GET reflects the new asset
+    _brandCache = null;
+    _brandCacheTs = 0;
 
     try {
       // req.file.path is the secure URL from Cloudinary when using multer-storage-cloudinary
@@ -131,6 +147,9 @@ router.post('/:type', (req, res) => {
 // ─── DELETE /api/brand/:type ──────────────────────────────────────────────────
 router.delete('/:type', async (req, res) => {
   const { type } = req.params;
+  // Bust server-side cache so next GET reflects the deletion
+  _brandCache = null;
+  _brandCacheTs = 0;
   try {
     if (useCloudinary) {
       await cloudinary.uploader.destroy(`polyxos/brand/${type}`);

@@ -4,7 +4,7 @@ import {
   MessageSquare, Tag, Trash2, ChevronDown, BarChart3, Eye,
   ImageIcon, Upload, RotateCcw, Save, X, Palette,
 } from 'lucide-react';
-import { useBrand } from '../context/BrandContext';
+import { useBrand, invalidateBrandCache } from '../context/BrandContext';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Contact {
@@ -159,6 +159,7 @@ function BrandEditor({
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || 'Upload failed.');
       setSaved(true);
+      invalidateBrandCache(); // bust localStorage so Navbar picks up the new logo
       onSaved();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed.');
@@ -174,6 +175,7 @@ function BrandEditor({
     setRawFile(null);
     setOrigSize(null);
     setSaved(false);
+    invalidateBrandCache(); // bust localStorage so Navbar reflects the deletion
     onSaved();
   };
 
