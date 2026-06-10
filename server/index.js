@@ -12,6 +12,7 @@ import technologiesRouter from './routes/technologies.js';
 import settingsRouter from './routes/settings.js';
 import analyticsRouter from './routes/analytics.js';
 import { seedDatabase } from './scripts/seedData.js';
+import pool from './db.js';
 
 dotenv.config();
 
@@ -47,13 +48,32 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
-app.get('/api/health', (_req, res) => {
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    service: 'Polyxos API',
-    version: '1.0.0',
-  });
+app.get('/api/health', async (_req, res) => {
+  try {
+    const dbCheck = await pool.query("SELECT table_name FROM information_schema.tables WHERE table_schema='public'");
+    const tables = dbCheck.rows.map(r => r.table_name);
+    res.json({
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+      service: 'Polyxos API',
+      version: '1.0.0',
+      database: {
+        connected: true,
+        tables: tables
+      }
+    });
+  } catch (dbErr) {
+    res.json({
+      status: 'error',
+      timestamp: new Date().toISOString(),
+      service: 'Polyxos API',
+      version: '1.0.0',
+      database: {
+        connected: false,
+        error: dbErr.message
+      }
+    });
+  }
 });
 
 app.use('/api/contacts',     contactsRouter);
