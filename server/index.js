@@ -6,6 +6,11 @@ import { fileURLToPath } from 'url';
 import contactsRouter from './routes/contacts.js';
 import auditsRouter from './routes/audits.js';
 import brandRouter from './routes/brand.js';
+import servicesRouter from './routes/services.js';
+import portfolioRouter from './routes/portfolio.js';
+import technologiesRouter from './routes/technologies.js';
+import settingsRouter from './routes/settings.js';
+import analyticsRouter from './routes/analytics.js';
 
 dotenv.config();
 
@@ -29,6 +34,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Serve uploaded brand assets (public/brand/) as static files
 app.use('/brand', express.static(path.join(__dirname, '..', 'public', 'brand')));
+// Serve uploaded portfolio assets as static files
+app.use('/uploads', express.static(path.join(__dirname, '..', 'public', 'uploads')));
 
 // Request logger (dev only)
 if (process.env.NODE_ENV !== 'production') {
@@ -48,9 +55,14 @@ app.get('/api/health', (_req, res) => {
   });
 });
 
-app.use('/api/contacts', contactsRouter);
-app.use('/api/audits',   auditsRouter);
-app.use('/api/brand',    brandRouter);
+app.use('/api/contacts',     contactsRouter);
+app.use('/api/audits',       auditsRouter);
+app.use('/api/brand',        brandRouter);
+app.use('/api/services',     servicesRouter);
+app.use('/api/portfolio',    portfolioRouter);
+app.use('/api/technologies', technologiesRouter);
+app.use('/api/settings',     settingsRouter);
+app.use('/api/analytics',    analyticsRouter);
 
 // 404 handler
 app.use((_req, res) => {

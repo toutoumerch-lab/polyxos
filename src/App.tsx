@@ -31,7 +31,60 @@ function CursorGlow() {
   return <div ref={cursorRef} className="cursor-glow hidden lg:block" />;
 }
 
+declare global {
+  interface Window {
+    dataLayer: any[];
+    gtag: (...args: any[]) => void;
+  }
+}
+
 function MainSite() {
+  useEffect(() => {
+    // 1. Local Tracking Fallback
+    const trackLocal = async () => {
+      try {
+        await fetch('/api/analytics/track', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            path: window.location.pathname,
+            referrer: document.referrer || null,
+          }),
+        });
+      } catch (err) {
+        console.error('Local tracking failed:', err);
+      }
+    };
+    trackLocal();
+
+    // 2. Dynamic GA4 Injection
+    const setupGA4 = async () => {
+      try {
+        const res = await fetch('/api/settings');
+        const data = await res.json();
+        if (data.success && data.data.ga4_measurement_id) {
+          const mId = data.data.ga4_measurement_id.trim();
+          if (!mId) return;
+
+          const script = document.createElement('script');
+          script.async = true;
+          script.src = `https://www.googletagmanager.com/gtag/js?id=${mId}`;
+          document.head.appendChild(script);
+
+          window.dataLayer = window.dataLayer || [];
+          window.gtag = function () {
+            window.dataLayer.push(arguments);
+          };
+          window.gtag('js', new Date());
+          window.gtag('config', mId, { page_path: window.location.pathname });
+        }
+      } catch (err) {
+        console.error('GA4 setup failed:', err);
+      }
+    };
+    setupGA4();
+  }, []);
+
   return (
     <div className="relative min-h-screen text-white" style={{ background: '#030308' }}>
       {/* ── Global starfield — fixed behind every section ── */}

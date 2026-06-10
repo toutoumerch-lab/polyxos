@@ -1,59 +1,65 @@
 import { useRef, useEffect, useState } from 'react';
-import {
-  Globe,
-  Smartphone,
-  Search,
-  Palette,
-  Code2,
-  ArrowRight,
-} from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
-const services = [
+const iconMap: Record<string, React.ComponentType<any>> = {
+  Globe: LucideIcons.Globe,
+  Smartphone: LucideIcons.Smartphone,
+  Search: LucideIcons.Search,
+  Palette: LucideIcons.Palette,
+  Code2: LucideIcons.Code2,
+  Cpu: LucideIcons.Cpu,
+  Database: LucideIcons.Database,
+  Cloud: LucideIcons.Cloud,
+  Lock: LucideIcons.Lock,
+};
+
+const STATIC_SERVICES = [
   {
-    id: 'web-dev',
-    icon: Globe,
+    id: 1,
+    icon_name: 'Globe',
     title: 'Website Development',
-    description:
+    short_description:
       'High-performance, conversion-optimized websites built with cutting-edge tech stacks. From landing pages to complex web platforms.',
     features: ['React / Next.js', 'SEO Optimized', 'Lightning Fast', 'Responsive Design'],
     color: '#3B82F6',
     gradient: 'from-blue-500/20 to-blue-600/5',
   },
   {
-    id: 'mobile-apps',
-    icon: Smartphone,
+    id: 2,
+    icon_name: 'Smartphone',
     title: 'Mobile App Development',
-    description:
+    short_description:
       'Native and cross-platform mobile applications that deliver exceptional user experiences on iOS and Android.',
     features: ['React Native', 'iOS & Android', 'Offline Support', 'Push Notifications'],
     color: '#8B5CF6',
     gradient: 'from-violet-500/20 to-violet-600/5',
   },
   {
-    id: 'website-audits',
-    icon: Search,
+    id: 3,
+    icon_name: 'Search',
     title: 'Website Audits',
-    description:
+    short_description:
       'Deep-dive performance, SEO, security, and UX audits with actionable insights to maximize your website\'s potential.',
     features: ['Performance Audit', 'SEO Analysis', 'Security Check', 'UX Review'],
     color: '#06B6D4',
     gradient: 'from-cyan-500/20 to-cyan-600/5',
   },
   {
-    id: 'ui-ux',
-    icon: Palette,
+    id: 4,
+    icon_name: 'Palette',
     title: 'UI/UX Design',
-    description:
+    short_description:
       'Stunning, user-centered designs that combine aesthetics with function. Figma prototypes to pixel-perfect implementations.',
     features: ['User Research', 'Wireframing', 'Prototyping', 'Design Systems'],
     color: '#EC4899',
     gradient: 'from-pink-500/20 to-pink-600/5',
   },
   {
-    id: 'custom-software',
-    icon: Code2,
+    id: 5,
+    icon_name: 'Code2',
     title: 'Custom Software Solutions',
-    description:
+    short_description:
       'Tailored software built to solve your unique business challenges — scalable, maintainable, and future-proof.',
     features: ['API Development', 'Microservices', 'Cloud Native', 'CI/CD Pipeline'],
     color: '#F59E0B',
@@ -78,6 +84,22 @@ function useInView(threshold = 0.15) {
 
 export default function Services() {
   const { ref, inView } = useInView();
+  const [services, setServices] = useState<any[]>(STATIC_SERVICES);
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const res = await fetch('/api/services');
+        const data = await res.json();
+        if (data.success && data.data && data.data.length > 0) {
+          setServices(data.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch services:', err);
+      }
+    };
+    fetchServices();
+  }, []);
 
   return (
     <section id="services" className="py-32 relative overflow-hidden">
@@ -101,7 +123,7 @@ export default function Services() {
         {/* Services Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {services.map((service, i) => {
-            const Icon = service.icon;
+            const Icon = iconMap[service.icon_name] || LucideIcons.Globe;
             return (
               <div
                 key={service.id}
@@ -128,12 +150,12 @@ export default function Services() {
                     {service.title}
                   </h3>
                   <p className="text-gray-400 text-sm leading-relaxed mb-6">
-                    {service.description}
+                    {service.short_description}
                   </p>
 
                   {/* Features */}
                   <div className="flex flex-wrap gap-2 mb-6">
-                    {service.features.map((f) => (
+                    {service.features.map((f: string) => (
                       <span
                         key={f}
                         className="text-xs px-3 py-1 rounded-full"
