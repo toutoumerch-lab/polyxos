@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Github, Twitter, Linkedin, Instagram } from 'lucide-react';
 import { useBrand } from '../context/BrandContext';
 
@@ -32,6 +33,8 @@ const socials = [
 
 export default function Footer() {
   const { logoUrl } = useBrand();
+  const [logoError, setLogoError] = useState(false);
+  useEffect(() => { setLogoError(false); }, [logoUrl]);
 
   const scrollTo = (href: string) => {
     if (href === '#') return;
@@ -54,8 +57,8 @@ export default function Footer() {
               onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               className="flex items-center gap-3 mb-6 group"
             >
-              {logoUrl ? (
-                <img src={logoUrl} alt="Logo" className="h-9 w-auto object-contain" />
+              {logoUrl && !logoError ? (
+                <img src={logoUrl} alt="Polyxos" className="h-9 w-auto object-contain" onError={() => setLogoError(true)} />
               ) : (
                 <>
                   <div className="relative w-9 h-9">

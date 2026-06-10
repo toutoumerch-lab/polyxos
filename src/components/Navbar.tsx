@@ -14,7 +14,11 @@ const navLinks = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [logoError, setLogoError] = useState(false);
   const { logoUrl } = useBrand();
+
+  // Reset error state whenever the URL changes (e.g. after a new upload)
+  useEffect(() => { setLogoError(false); }, [logoUrl]);
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20);
@@ -42,8 +46,13 @@ export default function Navbar() {
             className="flex items-center gap-3 group"
             onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
           >
-            {logoUrl ? (
-              <img src={logoUrl} alt="Logo" className="h-9 w-auto object-contain" />
+            {logoUrl && !logoError ? (
+              <img
+                src={logoUrl}
+                alt="Polyxos"
+                className="h-9 w-auto object-contain"
+                onError={() => setLogoError(true)}
+              />
             ) : (
               <>
                 <div className="relative w-9 h-9">
