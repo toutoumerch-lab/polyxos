@@ -28,7 +28,8 @@ router.post('/', async (req, res) => {
       url = `https://${url}`;
     }
 
-    const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+    const ipAddress = rawIp.split(',')[0].trim().substring(0, 50);
 
     const result = await pool.query(
       `INSERT INTO audit_requests (name, email, website_url, ip_address)

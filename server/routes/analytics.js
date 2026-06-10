@@ -14,7 +14,8 @@ router.post('/track', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Path is required.' });
     }
 
-    const ipAddress = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+    const ipAddress = rawIp.split(',')[0].trim().substring(0, 50);
     const userAgent = req.headers['user-agent'] || '';
 
     await pool.query(
