@@ -320,7 +320,7 @@ export default function Hero() {
       {/* ══════════════════════════════════════════════════════════════
           MAIN HERO CONTENT
          ══════════════════════════════════════════════════════════════ */}
-      <div className="relative text-center max-w-7xl mx-auto px-6 lg:px-8" style={{ zIndex: 10 }}>
+      <div className="relative text-center max-w-7xl mx-auto px-6 lg:px-8 pt-28 md:pt-0" style={{ zIndex: 10 }}>
 
         {/* Headline */}
         <h1
