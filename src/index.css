@@ -199,13 +199,19 @@
 }
 
 @keyframes logo-breathe {
-  0%, 100% { transform: scale(1)    rotate(0deg);  opacity: 0.18; }
-  50%       { transform: scale(1.03) rotate(0.8deg); opacity: 0.21; }
+  0%, 100% { transform: scale(1)     rotate(0deg);   opacity: 0.17; }
+  50%       { transform: scale(1.025) rotate(0.4deg); opacity: 0.22; }
 }
 
 @keyframes logo-glow-pulse {
-  0%, 100% { filter: drop-shadow(0 0 50px rgba(59,130,246,0.55))  drop-shadow(0 0 110px rgba(139,92,246,0.35)); }
-  50%       { filter: drop-shadow(0 0 80px rgba(59,130,246,0.75))  drop-shadow(0 0 160px rgba(6,182,212,0.45)); }
+  0%, 100% {
+    filter: drop-shadow(0 0 55px rgba(59,130,246,0.60))
+            drop-shadow(0 0 110px rgba(6,182,212,0.30));
+  }
+  50% {
+    filter: drop-shadow(0 0 85px rgba(59,130,246,0.82))
+            drop-shadow(0 0 170px rgba(6,182,212,0.52));
+  }
 }
 
 @keyframes scan-line {
@@ -235,11 +241,14 @@
   animation: fade-in 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* ── Hero 3-D Logo ── */
+/* ── Hero 3-D Logo (actual Polyxos brand) ── */
 .hero-logo-3d {
-  animation: logo-breathe 8s ease-in-out infinite, logo-glow-pulse 6s ease-in-out infinite;
+  opacity: 0.17;  /* initial before animation kicks in */
+  filter: drop-shadow(0 0 55px rgba(59,130,246,0.60)) drop-shadow(0 0 110px rgba(6,182,212,0.30));
+  animation: logo-breathe 9s ease-in-out infinite,
+             logo-glow-pulse 7s ease-in-out infinite;
   transform-origin: center center;
-  will-change: transform, filter;
+  will-change: transform, filter, opacity;
 }
 
 /* Scan-line shimmer inside logo wrapper */
