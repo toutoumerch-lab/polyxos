@@ -12,6 +12,11 @@ export default {
         'cyan-accent': '#06B6D4',
         'dark-bg': '#050505',
       },
+      opacity: {
+        '3': '0.03',
+        '4': '0.04',
+        '8': '0.08',
+      },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
         display: ['Outfit', 'sans-serif'],
