@@ -11,6 +11,7 @@ import ContactCTABanner from './components/ContactCTABanner';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 import Admin from './pages/Admin';
+import StarfieldBackground from './components/StarfieldBackground';
 import { BrandProvider } from './context/BrandContext';
 
 function CursorGlow() {
@@ -32,10 +33,13 @@ function CursorGlow() {
 
 function MainSite() {
   return (
-    <div className="min-h-screen bg-dark-bg text-white">
+    <div className="relative min-h-screen text-white" style={{ background: '#030308' }}>
+      {/* ── Global starfield — fixed behind every section ── */}
+      <StarfieldBackground />
+
       <CursorGlow />
       <Navbar />
-      <main>
+      <main style={{ position: 'relative', zIndex: 1 }}>
         <Hero />
         <Services />
         <Process />
