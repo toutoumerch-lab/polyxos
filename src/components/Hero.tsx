@@ -288,7 +288,7 @@ export default function Hero() {
           — breathing + glow-pulse CSS animations
          ══════════════════════════════════════════════════════════════ */}
       <div
-        className="absolute inset-0 flex items-center justify-center pointer-events-none"
+        className="absolute inset-0 hidden md:flex items-center justify-center pointer-events-none"
         style={{ zIndex: 2 }}
       >
         <div style={{
