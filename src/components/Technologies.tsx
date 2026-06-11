@@ -15,6 +15,149 @@ const STATIC_TECHS = [
   { name: 'Figma', logo_icon: '🎭' },
 ];
 
+// 3D Cuboid Face/Bar Component
+interface CuboidProps {
+  width: number;
+  height: number;
+  depth: number;
+  zOffset?: number;
+  rotateZ?: number;
+}
+
+function Cuboid({ width, height, depth, zOffset = 0, rotateZ = 0 }: CuboidProps) {
+  const w = `${width}px`;
+  const h = `${height}px`;
+  const d = `${depth}px`;
+  
+  const halfW = width / 2;
+  const halfH = height / 2;
+  const halfD = depth / 2;
+
+  return (
+    <div
+      className="absolute"
+      style={{
+        width: w,
+        height: h,
+        transformStyle: 'preserve-3d',
+        transform: `translate3d(-50%, -50%, ${zOffset}px) rotateZ(${rotateZ}deg)`,
+        left: '50%',
+        top: '50%',
+      }}
+    >
+      {/* Front Face */}
+      <div
+        className="absolute inset-0 rounded-[2px]"
+        style={{
+          transform: `translate3d(0, 0, ${halfD}px)`,
+          background: 'linear-gradient(135deg, #06b6d4, #3b82f6, #8b5cf6)',
+          border: '1px solid rgba(103, 232, 249, 0.4)',
+          boxShadow: 'inset 0 0 4px rgba(255, 255, 255, 0.3)',
+        }}
+      />
+      {/* Back Face */}
+      <div
+        className="absolute inset-0 rounded-[2px]"
+        style={{
+          transform: `rotateY(180deg) translate3d(0, 0, ${halfD}px)`,
+          background: 'linear-gradient(135deg, #06b6d4, #3b82f6, #8b5cf6)',
+          border: '1px solid rgba(103, 232, 249, 0.3)',
+        }}
+      />
+      {/* Left Face */}
+      <div
+        className="absolute inset-y-0 rounded-[2px]"
+        style={{
+          width: d,
+          left: '50%',
+          marginLeft: `-${halfD}px`,
+          transform: `rotateY(-90deg) translate3d(0, 0, ${halfW}px)`,
+          backgroundColor: '#3730a3',
+          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
+        }}
+      />
+      {/* Right Face */}
+      <div
+        className="absolute inset-y-0 rounded-[2px]"
+        style={{
+          width: d,
+          left: '50%',
+          marginLeft: `-${halfD}px`,
+          transform: `rotateY(90deg) translate3d(0, 0, ${halfW}px)`,
+          backgroundColor: '#2e27a0',
+          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRight: '1px solid rgba(255, 255, 255, 0.1)',
+        }}
+      />
+      {/* Top Face */}
+      <div
+        className="absolute inset-x-0 rounded-[2px]"
+        style={{
+          height: d,
+          top: '50%',
+          marginTop: `-${halfD}px`,
+          transform: `rotateX(90deg) translate3d(0, 0, ${halfH}px)`,
+          backgroundColor: '#38d4ed',
+          borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+          borderLeft: '1px solid rgba(255, 255, 255, 0.2)',
+          borderRight: '1px solid rgba(255, 255, 255, 0.2)',
+        }}
+      />
+      {/* Bottom Face */}
+      <div
+        className="absolute inset-x-0 rounded-[2px]"
+        style={{
+          height: d,
+          top: '50%',
+          marginTop: `-${halfD}px`,
+          transform: `rotateX(-90deg) translate3d(0, 0, ${halfH}px)`,
+          backgroundColor: '#1e1b4b',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          borderLeft: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRight: '1px solid rgba(255, 255, 255, 0.1)',
+        }}
+      />
+    </div>
+  );
+}
+
+function LogoX3D() {
+  return (
+    <>
+      <style>{`
+        @keyframes spin3D {
+          0% {
+            transform: rotateX(16deg) rotateY(0deg) rotateZ(2deg);
+          }
+          50% {
+            transform: rotateX(-12deg) rotateY(180deg) rotateZ(-2deg);
+          }
+          100% {
+            transform: rotateX(16deg) rotateY(360deg) rotateZ(2deg);
+          }
+        }
+        .animate-spin3d {
+          animation: spin3D 8s linear infinite;
+        }
+      `}</style>
+      <div
+        className="relative w-16 h-16 animate-spin3d flex items-center justify-center"
+        style={{
+          transformStyle: 'preserve-3d',
+        }}
+      >
+        {/* Bar 1: diagonal top-left to bottom-right */}
+        <Cuboid width={10} height={46} depth={10} zOffset={0.2} rotateZ={45} />
+        {/* Bar 2: diagonal top-right to bottom-left */}
+        <Cuboid width={10} height={46} depth={10} zOffset={-0.2} rotateZ={-45} />
+      </div>
+    </>
+  );
+}
+
 export default function Technologies() {
   const ref = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
@@ -77,8 +220,11 @@ export default function Technologies() {
         {/* Decorative orbit */}
         <div className={`relative mt-24 h-64 flex items-center justify-center transition-all duration-1000 delay-500 ${inView ? 'opacity-100' : 'opacity-0'}`}>
           {/* Center */}
-          <div className="relative z-10 w-20 h-20 rounded-2xl gradient-bg flex items-center justify-center glow-blue shadow-2xl">
-            <span className="text-white font-display font-black text-2xl">P</span>
+          <div 
+            className="relative z-10 w-20 h-20 rounded-2xl bg-slate-950/70 border border-violet-500/30 flex items-center justify-center glow-blue shadow-2xl backdrop-blur-md"
+            style={{ perspective: '300px' }}
+          >
+            <LogoX3D />
           </div>
           
           {/* Ring 1 */}
