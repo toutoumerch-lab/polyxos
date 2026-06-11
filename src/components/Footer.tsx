@@ -24,17 +24,17 @@ const footerLinks = {
   ],
 };
 
-const socials = [
-  { icon: Github, href: 'https://github.com', label: 'GitHub' },
-  { icon: Twitter, href: 'https://twitter.com', label: 'Twitter' },
-  { icon: Linkedin, href: 'https://linkedin.com', label: 'LinkedIn' },
-  { icon: Instagram, href: 'https://instagram.com', label: 'Instagram' },
-];
-
 export default function Footer() {
-  const { logoUrl } = useBrand();
+  const { logoUrl, settings } = useBrand();
   const [logoError, setLogoError] = useState(false);
   useEffect(() => { setLogoError(false); }, [logoUrl]);
+
+  const socials = [
+    { icon: Github, href: settings.social_github || 'https://github.com', label: 'GitHub' },
+    { icon: Twitter, href: settings.social_twitter || 'https://twitter.com', label: 'Twitter' },
+    { icon: Linkedin, href: settings.social_linkedin || 'https://linkedin.com', label: 'LinkedIn' },
+    { icon: Instagram, href: settings.social_instagram || 'https://instagram.com', label: 'Instagram' },
+  ];
 
   const scrollTo = (href: string) => {
     if (href === '#') return;

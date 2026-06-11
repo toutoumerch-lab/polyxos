@@ -22,10 +22,19 @@ router.post('/verify-auth', (req, res) => {
 });
 
 // ─── GET /api/settings ────────────────────────────────────────────────────────
-// Public route to get general frontend settings (like GA4 Measurement ID)
+// Public route to get general frontend settings (like GA4 Measurement ID, contact, socials)
 router.get('/', async (req, res) => {
   try {
-    const keys = ['ga4_measurement_id'];
+    const keys = [
+      'ga4_measurement_id',
+      'contact_email',
+      'contact_phone',
+      'contact_location',
+      'social_github',
+      'social_twitter',
+      'social_linkedin',
+      'social_instagram'
+    ];
     const result = await pool.query('SELECT key, value FROM settings WHERE key = ANY($1)', [keys]);
     
     const settingsObj = {};
@@ -45,7 +54,19 @@ router.get('/', async (req, res) => {
 // Admin route to fetch all settings (including private keys for Google Analytics Data API)
 router.get('/admin', requireAdminAuth, async (req, res) => {
   try {
-    const keys = ['ga4_measurement_id', 'ga4_property_id', 'ga4_client_email', 'ga4_private_key'];
+    const keys = [
+      'ga4_measurement_id',
+      'ga4_property_id',
+      'ga4_client_email',
+      'ga4_private_key',
+      'contact_email',
+      'contact_phone',
+      'contact_location',
+      'social_github',
+      'social_twitter',
+      'social_linkedin',
+      'social_instagram'
+    ];
     const result = await pool.query('SELECT key, value FROM settings WHERE key = ANY($1)', [keys]);
 
     const settingsObj = {};
@@ -70,10 +91,23 @@ router.post('/admin', requireAdminAuth, async (req, res) => {
       return res.status(400).json({ success: false, error: 'Invalid settings object.' });
     }
 
+    const allowedKeys = [
+      'ga4_measurement_id',
+      'ga4_property_id',
+      'ga4_client_email',
+      'ga4_private_key',
+      'contact_email',
+      'contact_phone',
+      'contact_location',
+      'social_github',
+      'social_twitter',
+      'social_linkedin',
+      'social_instagram'
+    ];
+
     await pool.query('BEGIN');
     for (const [key, value] of Object.entries(settings)) {
       const sanitizedKey = key.trim().toLowerCase();
-      const allowedKeys = ['ga4_measurement_id', 'ga4_property_id', 'ga4_client_email', 'ga4_private_key'];
       if (!allowedKeys.includes(sanitizedKey)) continue;
 
       await pool.query(

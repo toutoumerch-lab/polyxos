@@ -383,32 +383,87 @@ function BrandEditor({
 function BrandTab({ token }: { token: string }) {
   const [brand, setBrand] = useState<{ logo: BrandAsset; favicon: BrandAsset } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState({
+    contact_email: '',
+    contact_phone: '',
+    contact_location: '',
+    social_github: '',
+    social_twitter: '',
+    social_linkedin: '',
+    social_instagram: ''
+  });
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [settingsMessage, setSettingsMessage] = useState<string | null>(null);
 
-  const fetchBrand = useCallback(async () => {
+  const fetchBrandAndSettings = useCallback(async () => {
     setLoading(true);
     try {
-      const res  = await fetch('/api/brand');
-      const data = await res.json();
-      if (data.success) setBrand(data.data);
-    } catch { /* silent */ }
-    finally { setLoading(false); }
-  }, []);
+      const [brandRes, settingsRes] = await Promise.all([
+        fetch('/api/brand'),
+        fetch('/api/settings/admin', { headers: { 'Authorization': `Bearer ${token}` } })
+      ]);
+      const brandData = await brandRes.json();
+      const settingsData = await settingsRes.json();
 
-  useEffect(() => { fetchBrand(); }, [fetchBrand]);
+      if (brandData.success) setBrand(brandData.data);
+      if (settingsData.success) {
+        setSettings(prev => ({
+          ...prev,
+          contact_email: settingsData.data.contact_email || '',
+          contact_phone: settingsData.data.contact_phone || '',
+          contact_location: settingsData.data.contact_location || '',
+          social_github: settingsData.data.social_github || '',
+          social_twitter: settingsData.data.social_twitter || '',
+          social_linkedin: settingsData.data.social_linkedin || '',
+          social_instagram: settingsData.data.social_instagram || ''
+        }));
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  useEffect(() => { fetchBrandAndSettings(); }, [fetchBrandAndSettings]);
+
+  const handleSaveSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingSettings(true);
+    setSettingsMessage(null);
+    try {
+      const res = await fetch('/api/settings/admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(settings)
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSettingsMessage('Settings saved successfully!');
+        invalidateBrandCache();
+      } else {
+        setSettingsMessage(`Error: ${data.error}`);
+      }
+    } catch (err: any) {
+      setSettingsMessage(`Error: ${err.message}`);
+    } finally {
+      setSavingSettings(false);
+    }
+  };
 
   if (loading) return (
     <div className="flex items-center justify-center py-16 text-gray-600">
-      <RefreshCw size={18} className="animate-spin mr-3" /> Loading brand assets...
+      <RefreshCw size={18} className="animate-spin mr-3" /> Loading brand settings...
     </div>
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex items-start gap-3 p-4 rounded-xl bg-blue-500/8 border border-blue-500/20">
         <ImageIcon size={16} className="text-blue-400 flex-shrink-0 mt-0.5" />
         <div className="text-sm text-blue-300">
-          <span className="font-semibold">Brand Assets Manager</span>
-          <span className="text-blue-400/70"> — Upload and resize your site logo and browser favicon. Use the sliders or preset sizes, then click Save to publish.</span>
+          <span className="font-semibold">Brand Assets & Configuration Manager</span>
+          <span className="text-blue-400/70"> — Manage site logo, favicon, contact details, and social media profile links.</span>
         </div>
       </div>
 
@@ -418,7 +473,7 @@ function BrandTab({ token }: { token: string }) {
           label="Site Logo"
           hint="Displayed in the navbar and footer. Recommended: PNG with transparency."
           currentUrl={brand?.logo.url ?? null}
-          onSaved={fetchBrand}
+          onSaved={fetchBrandAndSettings}
           token={token}
         />
         <BrandEditor
@@ -426,10 +481,119 @@ function BrandTab({ token }: { token: string }) {
           label="Favicon"
           hint="Shown in browser tabs. Square image — common sizes: 32×32, 48×48, 64×64."
           currentUrl={brand?.favicon.url ?? null}
-          onSaved={fetchBrand}
+          onSaved={fetchBrandAndSettings}
           token={token}
         />
       </div>
+
+      <form onSubmit={handleSaveSettings} className="glass rounded-2xl border border-white/5 p-6 space-y-6">
+        <div>
+          <p className="font-display font-bold text-white text-base">Contact & Social Links Configuration</p>
+          <p className="text-gray-500 text-xs mt-0.5">Configure your company's social media profiles and contact info displayed in navbar, footer, and contact section.</p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Contact Info</p>
+            
+            <div>
+              <label className="block text-xs text-gray-400 mb-1 font-medium">Contact Email</label>
+              <input
+                type="email"
+                value={settings.contact_email}
+                onChange={(e) => setSettings({ ...settings, contact_email: e.target.value })}
+                placeholder="e.g. hello@polyxos.com"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs text-gray-400 mb-1 font-medium">Contact Phone</label>
+              <input
+                type="text"
+                value={settings.contact_phone}
+                onChange={(e) => setSettings({ ...settings, contact_phone: e.target.value })}
+                placeholder="e.g. +1 (555) 000-0000"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs text-gray-400 mb-1 font-medium">Location</label>
+              <input
+                type="text"
+                value={settings.contact_location}
+                onChange={(e) => setSettings({ ...settings, contact_location: e.target.value })}
+                placeholder="e.g. Remote — Worldwide"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Social Media Links</p>
+            
+            <div>
+              <label className="block text-xs text-gray-400 mb-1 font-medium">GitHub URL</label>
+              <input
+                type="url"
+                value={settings.social_github}
+                onChange={(e) => setSettings({ ...settings, social_github: e.target.value })}
+                placeholder="https://github.com/..."
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs text-gray-400 mb-1 font-medium">Twitter URL</label>
+              <input
+                type="url"
+                value={settings.social_twitter}
+                onChange={(e) => setSettings({ ...settings, social_twitter: e.target.value })}
+                placeholder="https://twitter.com/..."
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs text-gray-400 mb-1 font-medium">LinkedIn URL</label>
+              <input
+                type="url"
+                value={settings.social_linkedin}
+                onChange={(e) => setSettings({ ...settings, social_linkedin: e.target.value })}
+                placeholder="https://linkedin.com/in/..."
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs text-gray-400 mb-1 font-medium">Instagram URL</label>
+              <input
+                type="url"
+                value={settings.social_instagram}
+                onChange={(e) => setSettings({ ...settings, social_instagram: e.target.value })}
+                placeholder="https://instagram.com/..."
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+              />
+            </div>
+          </div>
+        </div>
+
+        {settingsMessage && (
+          <p className="text-xs text-blue-400 bg-blue-500/10 border border-blue-500/20 px-3 py-2 rounded-lg">{settingsMessage}</p>
+        )}
+
+        <div className="flex justify-end pt-2">
+          <button
+            type="submit"
+            disabled={savingSettings}
+            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
+          >
+            <Save size={14} />
+            {savingSettings ? 'Saving...' : 'Save Configuration'}
+          </button>
+        </div>
+      </form>
 
       {brand && (
         <div className="glass rounded-2xl border border-white/5 p-5">

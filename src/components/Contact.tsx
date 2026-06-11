@@ -1,7 +1,9 @@
 import { useRef, useEffect, useState } from 'react';
 import { ArrowRight, Mail, Phone, MapPin, Send, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useBrand } from '../context/BrandContext';
 
 export default function Contact() {
+  const { settings } = useBrand();
   const ref = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
   const [formState, setFormState] = useState({
@@ -82,9 +84,9 @@ export default function Contact() {
           <div className={`lg:col-span-2 transition-all duration-700 delay-200 ${inView ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
             <div className="space-y-6 mb-12">
               {[
-                { icon: Mail, label: 'Email Us', value: 'hello@polyxos.com', href: 'mailto:hello@polyxos.com' },
-                { icon: Phone, label: 'Call Us', value: '+1 (555) 000-0000', href: 'tel:+15550000000' },
-                { icon: MapPin, label: 'Location', value: 'Remote — Worldwide', href: '#' },
+                { icon: Mail, label: 'Email Us', value: settings.contact_email || 'hello@polyxos.com', href: `mailto:${settings.contact_email || 'hello@polyxos.com'}` },
+                { icon: Phone, label: 'Call Us', value: settings.contact_phone || '+1 (555) 000-0000', href: `tel:${(settings.contact_phone || '+1 (555) 000-0000').replace(/[^\d+]/g, '')}` },
+                { icon: MapPin, label: 'Location', value: settings.contact_location || 'Remote — Worldwide', href: '#' },
               ].map((item) => {
                 const Icon = item.icon;
                 return (

@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 interface BrandData {
   logoUrl: string | null;
   faviconUrl: string | null;
+  settings: Record<string, string>;
 }
 
 const CACHE_KEY = 'polyxos_brand_cache';
@@ -41,7 +42,18 @@ function applyFavicon(url: string | null) {
   link.href = url;
 }
 
-const DEFAULT: BrandData = { logoUrl: null, faviconUrl: null };
+const DEFAULT_SETTINGS: Record<string, string> = {
+  ga4_measurement_id: '',
+  contact_email: '',
+  contact_phone: '',
+  contact_location: '',
+  social_github: '',
+  social_twitter: '',
+  social_linkedin: '',
+  social_instagram: ''
+};
+
+const DEFAULT: BrandData = { logoUrl: null, faviconUrl: null, settings: DEFAULT_SETTINGS };
 const BrandContext = createContext<BrandData>(DEFAULT);
 
 export function BrandProvider({ children }: { children: ReactNode }) {
@@ -55,19 +67,34 @@ export function BrandProvider({ children }: { children: ReactNode }) {
 
     (async () => {
       try {
-        const res = await fetch('/api/brand', { signal: controller.signal });
-        if (!res.ok) return;
-        const json = await res.json();
-        if (cancelled || !json.success) return;
+        const [brandRes, settingsRes] = await Promise.all([
+          fetch('/api/brand', { signal: controller.signal }),
+          fetch('/api/settings', { signal: controller.signal })
+        ]);
+
+        if (!brandRes.ok || !settingsRes.ok) return;
+        const [brandJson, settingsJson] = await Promise.all([
+          brandRes.json(),
+          settingsRes.json()
+        ]);
+
+        if (cancelled || !brandJson.success || !settingsJson.success) return;
 
         const fresh: BrandData = {
-          logoUrl:    json.data.logo?.exists    ? json.data.logo.url    : null,
-          faviconUrl: json.data.favicon?.exists ? json.data.favicon.url : null,
+          logoUrl:    brandJson.data.logo?.exists    ? brandJson.data.logo.url    : null,
+          faviconUrl: brandJson.data.favicon?.exists ? brandJson.data.favicon.url : null,
+          settings:   settingsJson.data || DEFAULT_SETTINGS
         };
 
         // Only update state & cache when something actually changed
         setBrand(prev => {
-          if (prev.logoUrl === fresh.logoUrl && prev.faviconUrl === fresh.faviconUrl) return prev;
+          if (
+            prev.logoUrl === fresh.logoUrl &&
+            prev.faviconUrl === fresh.faviconUrl &&
+            JSON.stringify(prev.settings) === JSON.stringify(fresh.settings)
+          ) {
+            return prev;
+          }
           writeCache(fresh);
           applyFavicon(fresh.faviconUrl);
           return fresh;
